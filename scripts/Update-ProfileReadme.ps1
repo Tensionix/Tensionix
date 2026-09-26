@@ -69,7 +69,7 @@ foreach ($repo in $repos) {
     $about = Format-Cell ([string]$repo.description)
     $links = New-Object System.Collections.Generic.List[string]
     if ($release) {
-        $version = '![release](https://img.shields.io/github/v/release/{0}/{1}?style=flat-square&label=&color=e08a63)' -f $Owner, $repo.name
+        $version = '![release](https://img.shields.io/github/v/release/{0}/{1}?style=flat-square&label=&color=2a7488)' -f $Owner, $repo.name
         $links.Add(('[Download]({0}/releases/latest)' -f $repo.html_url))
     } else {
         $version = '-'
