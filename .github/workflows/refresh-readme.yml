@@ -1,0 +1,46 @@
+name: Refresh profile README
+
+# Once a day the project table is rebuilt from GitHub itself: a new repository
+# shows up without anyone touching this file. The version badges need no run at
+# all - GitHub draws them live from the latest release.
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rebuild the project table
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./scripts/Update-ProfileReadme.ps1
+
+      - name: Commit only when it changed
+        run: |
+          if git diff --quiet -- README.md; then
+            echo "README is current - nothing to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "README: refresh the project table"
+          git push
+
+      # GitHub switches scheduled workflows off in a public repository after 60
+      # days without activity. The table changes only when projects do, so quiet
+      # months are normal here; enabling the workflow again on every run keeps the
+      # schedule alive without dummy commits.
+      - name: Keep the schedule alive
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/refresh-readme.yml/enable"
